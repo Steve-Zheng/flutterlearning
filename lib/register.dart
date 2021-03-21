@@ -56,7 +56,6 @@ class _RegisterFormState extends State<RegisterForm> {
   final _rePasswordTextController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Form(
       child: Column(
         mainAxisSize: MainAxisSize.min,
