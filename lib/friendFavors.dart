@@ -1,4 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterlearning/favor.dart';
+import 'package:flutterlearning/mock_values.dart';
+import 'package:intl/intl.dart';
 
 void main() => runApp(MyApp());
 
@@ -121,5 +125,59 @@ class FavorsPage extends StatelessWidget {
         )
       ],
     );
+  }
+
+  Widget _itemFooter(Favor favor) {
+    if(favor.isCompleted) {
+      final format = DateFormat();
+      return Container(
+        margin: EdgeInsets.only(top: 8.0),
+        alignment: Alignment.centerRight,
+        child: Chip(
+          label: Text("Completed at:${format.format(favor.completed)}"),
+        ),
+      );
+    }
+    if(favor.isRefused) {
+      final format = DateFormat();
+      return Container(
+        margin: EdgeInsets.only(top: 8.0),
+        alignment: Alignment.centerRight,
+        child: Chip(
+          label: Text("Due date at:${format.format(favor.dueDate)}"),
+        ),
+      );
+    }
+    if(favor.isRequested) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          TextButton(
+            child: Text("Refuse"),
+            onPressed: (){},
+          ),
+          TextButton(
+            child: Text("Do"),
+            onPressed: (){},
+          )
+        ],
+      );
+    }
+    if(favor.isDoing) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          TextButton(
+            child: Text("Give up"),
+            onPressed: (){},
+          ),
+          TextButton(
+            child: Text("Complete"),
+            onPressed: (){},
+          )
+        ],
+      );
+    }
+    return Container();
   }
 }
