@@ -22,4 +22,22 @@ class Favor{
   get isCompleted => completed != null;
 
   get isRefused => accepted == false;
+
+  Favor copyWith({
+    String uuid,
+    String description,
+    DateTime dueDate,
+    bool accepted,
+    DateTime completed,
+    Friend friend,
+  }) {
+    return Favor(
+      uuid: uuid ?? this.uuid,
+      description: description ?? this.description,
+      dueDate: dueDate ?? this.dueDate,
+      accepted: accepted ?? this.accepted,
+      completed: completed ?? this.completed,
+      friend: friend ?? this.friend,
+    );
+  }
 }
