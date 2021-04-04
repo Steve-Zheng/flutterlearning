@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutterlearning/favor.dart';
+import 'package:flutterlearning/friend.dart';
 import 'package:flutterlearning/mock_values.dart';
 import 'package:intl/intl.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 
 void main() => runApp(MyApp());
 
@@ -12,28 +15,44 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       home: FavorsPage(
-        pendingAnswerFavors: mockPendingFavors,
-        completedFavors: mockCompletedFavors,
-        refusedFavors: mockRefusedFavors,
-        acceptedFavors: mockDoingFavors,
       ),
     );
   }
 }
 
-class FavorsPage extends StatelessWidget {
-  final List<Favor> pendingAnswerFavors;
-  final List<Favor> acceptedFavors;
-  final List<Favor> completedFavors;
-  final List<Favor> refusedFavors;
+class FavorsPage extends StatefulWidget {
+
 
   FavorsPage({
     Key key,
-    this.pendingAnswerFavors,
-    this.acceptedFavors,
-    this.completedFavors,
-    this.refusedFavors,
-}):super(key:key);
+  }) :super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => FavorsPageState();
+}
+class FavorsPageState extends State<FavorsPage>{
+  List<Favor> pendingAnswerFavors;
+  List<Favor> acceptedFavors;
+  List<Favor> completedFavors;
+  List<Favor> refusedFavors;
+  @override
+  void initState(){
+    super.initState();
+    pendingAnswerFavors = [];
+    acceptedFavors = [];
+    completedFavors = [];
+    refusedFavors = [];
+
+    loadFavors();
+  }
+
+  void loadFavors(){
+    pendingAnswerFavors.addAll(mockPendingFavors);
+    acceptedFavors.addAll(mockDoingFavors);
+    completedFavors.addAll(mockCompletedFavors);
+    refusedFavors.addAll(mockRefusedFavors);
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -77,7 +96,7 @@ class FavorsPage extends StatelessWidget {
   Widget _favorsList(String title, List<Favor> favors) {
     return Column(
       mainAxisSize: MainAxisSize.max,
-      children: <Widget>[
+      children: [
         Padding(
           padding: EdgeInsets.only(top: 16.0),
           child: Text(title),
@@ -93,7 +112,7 @@ class FavorsPage extends StatelessWidget {
                 margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
                 child: Padding(
                   child: Column(
-                    children: <Widget>[
+                    children: [
                       _itemHeader(favor),
                       Text(favor.description),
                       _itemFooter(favor),
@@ -111,7 +130,7 @@ class FavorsPage extends StatelessWidget {
 
   Row _itemHeader(Favor favor) {
     return Row(
-      children: <Widget>[
+      children: [
         CircleAvatar(
           backgroundImage: NetworkImage(
             favor.friend.photoURL,
@@ -151,7 +170,7 @@ class FavorsPage extends StatelessWidget {
     if(favor.isRequested) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
+        children: [
           TextButton(
             child: Text("Refuse"),
             onPressed: (){},
@@ -166,7 +185,7 @@ class FavorsPage extends StatelessWidget {
     if(favor.isDoing) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
+        children: [
           TextButton(
             child: Text("Give up"),
             onPressed: (){},
@@ -179,5 +198,59 @@ class FavorsPage extends StatelessWidget {
       );
     }
     return Container();
+  }
+}
+
+class RequestFavorPage extends StatelessWidget {
+  final List<Friend> friends;
+  RequestFavorPage({Key key,this.friends}):super(key:key);
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      appBar: AppBar(
+        leading: CloseButton(),
+        title: Text("Requesting a favor"),
+        actions: [
+          TextButton(
+            child: Text("Save"),
+              onPressed: (){},
+              style: TextButton.styleFrom(primary: Colors.white),
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(12.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Request a favor to:"),
+            DropdownButtonFormField(
+              items: friends.map((e) => DropdownMenuItem(child: Text(e.name),),).toList(),
+            ),
+            Container(
+              height: 16.0,
+            ),
+            Text("Favor description:"),
+            TextFormField(
+              maxLines: 3,
+              inputFormatters: [LengthLimitingTextInputFormatter(120)],
+            ),
+            Container(
+              height: 16.0,
+            ),
+            Text("Due date:"),
+            DateTimeField(
+              format: DateFormat("EEEE, MMMM d, yyyy 'at' h:mma"),
+
+              decoration: InputDecoration(
+                labelText: 'Date/Time', floatingLabelBehavior: FloatingLabelBehavior.auto,
+              ),
+              onChanged: (dt){},
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
