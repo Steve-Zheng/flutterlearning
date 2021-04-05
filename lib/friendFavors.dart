@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +15,10 @@ List<Favor> acceptedFavors;
 List<Favor> completedFavors;
 List<Favor> refusedFavors;
 
-void main() => runApp(MyApp());
+void main(){
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
+}
 
 final greenTheme = ThemeData(
   primarySwatch: Colors.lightGreen,
@@ -22,6 +26,22 @@ final greenTheme = ThemeData(
   primaryColorBrightness: Brightness.dark,
   cardColor: Colors.lightGreen.shade100,
 );
+
+class FirebaseLoader extends StatelessWidget{
+  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _initialization,
+      builder: (context,snapshot){
+        if(snapshot.connectionState == ConnectionState.done){
+          return MyApp();
+        }
+        return MyApp();
+      },
+    );
+  }
+}
 
 class MyApp extends StatelessWidget {
   @override
