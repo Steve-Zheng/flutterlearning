@@ -5,6 +5,7 @@ class Favor{
   final DateTime dueDate;
   final bool accepted;
   final DateTime completed;
+  final DateTime refuseDate;
   final Friend friend;
   Favor({
    this.uuid,
@@ -13,6 +14,7 @@ class Favor{
    this.accepted,
    this.completed,
    this.friend,
+   this.refuseDate,
 });
 
   get isDoing => accepted == true && completed == null;
@@ -29,6 +31,7 @@ class Favor{
     DateTime dueDate,
     bool accepted,
     DateTime completed,
+    DateTime refuseDate,
     Friend friend,
   }) {
     return Favor(
@@ -37,6 +40,7 @@ class Favor{
       dueDate: dueDate ?? this.dueDate,
       accepted: accepted ?? this.accepted,
       completed: completed ?? this.completed,
+      refuseDate: refuseDate??this.refuseDate,
       friend: friend ?? this.friend,
     );
   }

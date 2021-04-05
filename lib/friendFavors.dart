@@ -6,13 +6,28 @@ import 'package:flutterlearning/friend.dart';
 import 'package:flutterlearning/mock_values.dart';
 import 'package:intl/intl.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:flutterlearning/string_extension.dart';
+import 'dart:math';
+
+List<Favor> pendingAnswerFavors;
+List<Favor> acceptedFavors;
+List<Favor> completedFavors;
+List<Favor> refusedFavors;
 
 void main() => runApp(MyApp());
+
+final greenTheme = ThemeData(
+  primarySwatch: Colors.lightGreen,
+  accentColor: Colors.lightGreenAccent,
+  primaryColorBrightness: Brightness.dark,
+  cardColor: Colors.lightGreen.shade100,
+);
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: greenTheme,
       title: 'Flutter Demo',
       home: FavorsPage(),
     );
@@ -29,10 +44,7 @@ class FavorsPage extends StatefulWidget {
 }
 
 class FavorsPageState extends State<FavorsPage>{
-  List<Favor> pendingAnswerFavors;
-  List<Favor> acceptedFavors;
-  List<Favor> completedFavors;
-  List<Favor> refusedFavors;
+
 
   @override
   void initState(){
@@ -106,7 +118,7 @@ class FavorsPageState extends State<FavorsPage>{
   void refuseToDo(Favor favor){
     setState(() {
       pendingAnswerFavors.remove(favor);
-      refusedFavors.add(favor.copyWith(accepted:false));
+      refusedFavors.add(favor.copyWith(accepted:false,refuseDate:DateTime.now()));
     });
   }
 
@@ -120,7 +132,7 @@ class FavorsPageState extends State<FavorsPage>{
   void giveUpDoing(Favor favor){
     setState(() {
       acceptedFavors.remove(favor);
-      refusedFavors.add(favor.copyWith(accepted: false));
+      refusedFavors.add(favor.copyWith(accepted: false,refuseDate: DateTime.now()));
     });
   }
 
@@ -140,24 +152,63 @@ class FavorsList extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(top: 16.0),
-          child: Text(title),
-        ),
-        Expanded(
-          child: ListView.builder(
-            physics: BouncingScrollPhysics(),
-            itemCount: favors.length,
-            itemBuilder: (BuildContext context, int index){
-              final favor = favors[index];
-              return FavorCardItem(favor:favor);
-            },
-          ),
-        )
-      ],
+    if(favors.length != 0){
+      return Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Expanded(
+            child: _buildCardsList(context),
+          )
+        ],
+      );
+    }
+    else{
+      return Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 16.0),
+            child: Text("No "+title+" favors"),
+          )
+        ],
+      );
+    }
+  }
+
+  Widget _buildCardsList(BuildContext context){
+    final _screenWidth = MediaQuery.of(context).size.width;
+    final _favorCardMaxWidth = 400;
+    final _cardsPerRow = max(1,_screenWidth~/_favorCardMaxWidth);
+    var _crossAxisSpacing = 0;
+    var _width = ( _screenWidth - ((_cardsPerRow - 1) * _crossAxisSpacing)) / _cardsPerRow;
+    var cellHeight = 150;
+    var _aspectRatio = _width /cellHeight;
+
+
+    if(_cardsPerRow==1){
+      return ListView.builder(
+          physics: BouncingScrollPhysics(),
+          itemCount: favors.length,
+          itemBuilder: (BuildContext context, int index){
+            final favor = favors[index];
+            return FavorCardItem(favor: favor);
+          },
+        );
+    }
+
+    return GridView.builder(
+      padding: EdgeInsets.zero,
+      physics: BouncingScrollPhysics(),
+      itemCount: favors.length,
+      scrollDirection: Axis.vertical,
+      itemBuilder: (BuildContext context,int index){
+        final favor = favors[index];
+        return FavorCardItem(favor: favor);
+      },
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        childAspectRatio: _aspectRatio,
+        crossAxisCount: _cardsPerRow,
+      ),
     );
   }
 }
@@ -171,21 +222,25 @@ class FavorCardItem extends StatelessWidget{
   Widget build(BuildContext context) {
     return Card(
       key: ValueKey(favor.uuid),
-      margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
+      margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
       child: Padding(
-        child: Column(
-          children: [
-            _itemHeader(favor),
-            Text(favor.description),
-            _itemFooter(context,favor),
-          ],
+        child: IntrinsicWidth(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            //crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              _itemHeader(context,favor),
+              _itemDescription(context,favor),
+              _itemFooter(context,favor),
+            ],
+          ),
         ),
         padding: EdgeInsets.all(8.0),
       ),
     );
   }
 
-  Row _itemHeader(Favor favor) {
+  Widget _itemHeader(BuildContext context,Favor favor) {
     return Row(
       children: [
         CircleAvatar(
@@ -203,11 +258,17 @@ class FavorCardItem extends StatelessWidget{
     );
   }
 
+  Widget _itemDescription(BuildContext context,Favor favor){
+    return Align(
+        alignment: Alignment.center,
+        child: Text(favor.description.capitalizeFirstLetter(),style: Theme.of(context).textTheme.headline5,),
+      );
+  }
+
   Widget _itemFooter(BuildContext context,Favor favor) {
     if(favor.isCompleted) {
       final format = DateFormat();
       return Container(
-        margin: EdgeInsets.only(top: 8.0),
         alignment: Alignment.centerRight,
         child: Chip(
           label: Text("Completed at:${format.format(favor.completed)}"),
@@ -217,10 +278,9 @@ class FavorCardItem extends StatelessWidget{
     if(favor.isRefused) {
       final format = DateFormat();
       return Container(
-        margin: EdgeInsets.only(top: 8.0),
         alignment: Alignment.centerRight,
         child: Chip(
-          label: Text("Due date at:${format.format(favor.dueDate)}"),
+          label: Text("Refused at:${format.format(favor.refuseDate)}"),
         ),
       );
     }
@@ -243,6 +303,8 @@ class FavorCardItem extends StatelessWidget{
         ],
       );
     }
+
+
     if(favor.isDoing) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -280,14 +342,24 @@ class RequestFavorPage extends StatefulWidget {
 class RequestFavorPageState extends State<RequestFavorPage>{
   final _formKey = GlobalKey<FormState>();
   Friend _selectedFriend;
+  //String _description;
+  final descriptionController = TextEditingController();
+  final dateTimeController = TextEditingController();
 
   static RequestFavorPageState of(BuildContext context){
     return context.findAncestorStateOfType<RequestFavorPageState>();
   }
 
+  @override
+  void dispose(){
+    descriptionController.dispose();
+    super.dispose();
+  }
+
   void save(){
     if(_formKey.currentState.validate()){
-
+      final favor = new Favor(friend: _selectedFriend,description: descriptionController.text,dueDate: DateTime.now());
+      pendingAnswerFavors.add(favor);
       Navigator.pop(context);
     }
   }
@@ -352,6 +424,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
                   }
                   return null;
                 },
+                controller: descriptionController,
               ),
               Container(
                 height: 16.0,
@@ -375,6 +448,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
                   }
                   return null;
                 },
+                controller: dateTimeController,
               )
             ],
           ),

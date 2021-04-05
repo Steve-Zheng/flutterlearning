@@ -94,7 +94,7 @@ final mockRefusedFavors = [
   Favor(
     uuid: uuid.v4(),
     description: "find a job",
-    dueDate: DateTime.now().add(Duration(days: 1)),
+    refuseDate: DateTime.now().subtract(Duration(days: 1)),
     accepted: false,
     friend: Friend(
       name: "Dad",
