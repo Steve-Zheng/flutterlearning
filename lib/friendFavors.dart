@@ -25,29 +25,6 @@ class NavigatorApp extends StatefulWidget{
   _NavigatorAppState createState() => _NavigatorAppState();
 }
 
-// class _NavigatorAppState extends State<NavigatorApp>{
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: "Flutter Demo",
-//       color: Colors.lightGreen,
-//       theme: greenTheme,
-//       onGenerateRoute: (settings){
-//         if(settings.name == '/'){
-//           return MaterialPageRoute(
-//             builder: (context) => FavorsPage(),
-//           );
-//         }
-//         else if(settings.name == '/request'){
-//           return MaterialPageRoute(
-//             builder: (context) => RequestFavorPage(friends: mockFriends,),
-//           );
-//         }
-//         return MaterialPageRoute(builder: (context)=>errorPage(),);
-//       },
-//     );
-//   }
-
 class _NavigatorAppState extends State<NavigatorApp>{
   @override
   Widget build(BuildContext context) {
