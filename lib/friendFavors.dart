@@ -17,7 +17,48 @@ List<Favor> refusedFavors;
 
 void main(){
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  runApp(NavigatorApp());
+}
+
+class NavigatorApp extends StatefulWidget{
+  @override
+  _NavigatorAppState createState() => _NavigatorAppState();
+}
+
+class _NavigatorAppState extends State<NavigatorApp>{
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: "Flutter Demo",
+      color: Colors.lightGreen,
+      theme: greenTheme,
+      onGenerateRoute: (settings){
+        if(settings.name == '/'){
+          return MaterialPageRoute(
+            builder: (context) => FavorsPage(),
+          );
+        }
+        else if(settings.name == '/request'){
+          return MaterialPageRoute(
+            builder: (context) => RequestFavorPage(friends: mockFriends,),
+          );
+        }
+        return MaterialPageRoute(builder: (context)=>errorPage(),);
+      },
+    );
+  }
+
+  Widget errorPage(){
+    return Container(
+      color: Colors.red,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text("Error!"),
+        ],
+      ),
+    );
+  }
 }
 
 final greenTheme = ThemeData(
@@ -35,21 +76,10 @@ class FirebaseLoader extends StatelessWidget{
       future: _initialization,
       builder: (context,snapshot){
         if(snapshot.connectionState == ConnectionState.done){
-          return MyApp();
+          return NavigatorApp();
         }
-        return MyApp();
+        return NavigatorApp();
       },
-    );
-  }
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: greenTheme,
-      title: 'Flutter Demo',
-      home: FavorsPage(),
     );
   }
 }
@@ -64,8 +94,6 @@ class FavorsPage extends StatefulWidget {
 }
 
 class FavorsPageState extends State<FavorsPage>{
-
-
   @override
   void initState(){
     super.initState();
@@ -86,7 +114,10 @@ class FavorsPageState extends State<FavorsPage>{
   static FavorsPageState of(BuildContext context){
     return context.findAncestorStateOfType<FavorsPageState>();
   }
-
+  @override
+  void dispose(){
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -113,14 +144,9 @@ class FavorsPageState extends State<FavorsPage>{
             ],
           ),
           floatingActionButton: FloatingActionButton(
+            heroTag: "request_page",
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => RequestFavorPage(
-                    friends: mockFriends,
-                  )
-                ),
-              );
+              Navigator.of(context).pushNamed("/request");
             },
             tooltip: "Ask a favor",
             child: Icon(Icons.add),
@@ -204,7 +230,6 @@ class FavorsList extends StatelessWidget{
     var cellHeight = 150;
     var _aspectRatio = _width /cellHeight;
 
-
     if(_cardsPerRow==1){
       return ListView.builder(
           physics: BouncingScrollPhysics(),
@@ -247,7 +272,6 @@ class FavorCardItem extends StatelessWidget{
         child: IntrinsicWidth(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            //crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               _itemHeader(context,favor),
               _itemDescription(context,favor),
@@ -295,6 +319,7 @@ class FavorCardItem extends StatelessWidget{
         ),
       );
     }
+
     if(favor.isRefused) {
       final format = DateFormat();
       return Container(
@@ -304,6 +329,7 @@ class FavorCardItem extends StatelessWidget{
         ),
       );
     }
+
     if(favor.isRequested) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -323,7 +349,6 @@ class FavorCardItem extends StatelessWidget{
         ],
       );
     }
-
 
     if(favor.isDoing) {
       return Row(
@@ -360,7 +385,7 @@ class RequestFavorPage extends StatefulWidget {
 }
 
 class RequestFavorPageState extends State<RequestFavorPage>{
-  final _formKey = GlobalKey<FormState>();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Friend _selectedFriend;
   //String _description;
   final descriptionController = TextEditingController();
@@ -373,6 +398,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
   @override
   void dispose(){
     descriptionController.dispose();
+    dateTimeController.dispose();
     super.dispose();
   }
 
@@ -380,97 +406,100 @@ class RequestFavorPageState extends State<RequestFavorPage>{
     if(_formKey.currentState.validate()){
       final favor = new Favor(friend: _selectedFriend,description: descriptionController.text,dueDate: DateTime.now());
       pendingAnswerFavors.add(favor);
-      Navigator.pop(context);
+      Navigator.of(context).pop();
     }
   }
 
   @override
   Widget build(BuildContext context){
-    return Scaffold(
-      appBar: AppBar(
-        leading: CloseButton(),
-        title: Text("Requesting a favor"),
-        actions: [
-          Builder(
-            builder: (context) => TextButton(
-              child: Text("Save"),
-              onPressed: (){
-                RequestFavorPageState.of(context).save();
-              },
-              style: ButtonStyle(
-                foregroundColor: MaterialStateColor.resolveWith((Set<MaterialState>states){
-                  return states.contains(MaterialState.pressed) ? Colors.grey:Colors.white;
-                }),
+    return Hero(
+      tag: "request_page",
+      child: Scaffold(
+        appBar: AppBar(
+          leading: CloseButton(),
+          title: Text("Requesting a favor"),
+          actions: [
+            Builder(
+              builder: (context) => TextButton(
+                child: Text("Save"),
+                onPressed: (){
+                  RequestFavorPageState.of(context).save();
+                },
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateColor.resolveWith((Set<MaterialState>states){
+                    return states.contains(MaterialState.pressed) ? Colors.grey:Colors.white;
+                  }),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(12.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              DropdownButtonFormField<Friend>(
-                value: _selectedFriend,
-                onChanged: (friend){
-                  setState(() {
-                    _selectedFriend = friend;
-                  });
-                },
-                items: widget.friends.map(
-                    (e) => DropdownMenuItem(child: Text(e.name),value: e,)
-                ).toList(),
-                validator: (friend){
-                  if(friend == null){
-                    return "No friend selected";
-                  }
-                  return null;
-                },
-              ),
-              Container(
-                height: 16.0,
-              ),
-              Text("Favor description:"),
-              TextFormField(
-                maxLines: 3,
-                inputFormatters: [LengthLimitingTextInputFormatter(120)],
-                validator: (value){
-                  if(value.isEmpty){
-                    return "No description provided";
-                  }
-                  return null;
-                },
-                controller: descriptionController,
-              ),
-              Container(
-                height: 16.0,
-              ),
-              Text("Due date:"),
-              DateTimeField(
-                format: DateFormat("EEEE, MMMM d, yyyy 'at' h:mma"),
-                onShowPicker: (context,currentValue) async {
-                  final date = await showDatePicker(context: context, initialDate: currentValue??DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
-                  if(date != null){
-                    final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(currentValue ?? DateTime.now()));
-                    return DateTimeField.combine(date, time);
-                  }
-                  else{
-                    return currentValue;
-                  }
-                },
-                validator: (dateTime){
-                  if(dateTime==null){
-                    return "No due date selected";
-                  }
-                  return null;
-                },
-                controller: dateTimeController,
-              )
-            ],
+          ],
+        ),
+        body: Padding(
+          padding: EdgeInsets.all(12.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DropdownButtonFormField<Friend>(
+                  value: _selectedFriend,
+                  onChanged: (friend){
+                    setState(() {
+                      _selectedFriend = friend;
+                    });
+                  },
+                  items: widget.friends.map(
+                          (e) => DropdownMenuItem(child: Text(e.name),value: e,)
+                  ).toList(),
+                  validator: (friend){
+                    if(friend == null){
+                      return "No friend selected";
+                    }
+                    return null;
+                  },
+                ),
+                Container(
+                  height: 16.0,
+                ),
+                Text("Favor description:"),
+                TextFormField(
+                  maxLines: 3,
+                  inputFormatters: [LengthLimitingTextInputFormatter(120)],
+                  validator: (value){
+                    if(value.isEmpty){
+                      return "No description provided";
+                    }
+                    return null;
+                  },
+                  controller: descriptionController,
+                ),
+                Container(
+                  height: 16.0,
+                ),
+                Text("Due date:"),
+                DateTimeField(
+                  format: DateFormat("EEEE, MMMM d, yyyy 'at' h:mma"),
+                  onShowPicker: (context,currentValue) async {
+                    final date = await showDatePicker(context: context, initialDate: currentValue??DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
+                    if(date != null){
+                      final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(currentValue ?? DateTime.now()));
+                      return DateTimeField.combine(date, time);
+                    }
+                    else{
+                      return currentValue;
+                    }
+                  },
+                  validator: (dateTime){
+                    if(dateTime==null){
+                      return "No due date selected";
+                    }
+                    return null;
+                  },
+                  controller: dateTimeController,
+                )
+              ],
+            ),
           ),
         ),
       ),
