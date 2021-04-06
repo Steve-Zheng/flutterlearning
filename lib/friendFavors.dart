@@ -25,6 +25,29 @@ class NavigatorApp extends StatefulWidget{
   _NavigatorAppState createState() => _NavigatorAppState();
 }
 
+// class _NavigatorAppState extends State<NavigatorApp>{
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: "Flutter Demo",
+//       color: Colors.lightGreen,
+//       theme: greenTheme,
+//       onGenerateRoute: (settings){
+//         if(settings.name == '/'){
+//           return MaterialPageRoute(
+//             builder: (context) => FavorsPage(),
+//           );
+//         }
+//         else if(settings.name == '/request'){
+//           return MaterialPageRoute(
+//             builder: (context) => RequestFavorPage(friends: mockFriends,),
+//           );
+//         }
+//         return MaterialPageRoute(builder: (context)=>errorPage(),);
+//       },
+//     );
+//   }
+
 class _NavigatorAppState extends State<NavigatorApp>{
   @override
   Widget build(BuildContext context) {
@@ -32,22 +55,12 @@ class _NavigatorAppState extends State<NavigatorApp>{
       title: "Flutter Demo",
       color: Colors.lightGreen,
       theme: greenTheme,
-      onGenerateRoute: (settings){
-        if(settings.name == '/'){
-          return MaterialPageRoute(
-            builder: (context) => FavorsPage(),
-          );
-        }
-        else if(settings.name == '/request'){
-          return MaterialPageRoute(
-            builder: (context) => RequestFavorPage(friends: mockFriends,),
-          );
-        }
-        return MaterialPageRoute(builder: (context)=>errorPage(),);
+      routes: {
+        '/':(context) => FavorsPage(),
+        '/request': (context) => RequestFavorPage(friends: mockFriends,),
       },
     );
   }
-
   Widget errorPage(){
     return Container(
       color: Colors.red,
@@ -414,6 +427,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
   Widget build(BuildContext context){
     return Hero(
       tag: "request_page",
+      //tag: "temp",
       child: Scaffold(
         appBar: AppBar(
           leading: CloseButton(),
@@ -435,7 +449,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
           ],
         ),
         body: Padding(
-          padding: EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(12.0),
           child: Form(
             key: _formKey,
             child: Column(
@@ -497,7 +511,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
                     return null;
                   },
                   controller: dateTimeController,
-                )
+                ),
               ],
             ),
           ),
