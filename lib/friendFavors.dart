@@ -111,37 +111,37 @@ class FavorsPageState extends State<FavorsPage>{
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-        length: 4,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text("Your favors"),
-            bottom: TabBar(
-              isScrollable: true,
-              tabs: [
-                _buildCategoryTab("Requests"),
-                _buildCategoryTab("Doing"),
-                _buildCategoryTab("Completed"),
-                _buildCategoryTab("Refused"),
-              ],
-            ),
-          ),
-          body: TabBarView(
-            children: [
-              FavorsList(title:"Pending Requests", favors:pendingAnswerFavors),
-              FavorsList(title:"Doing", favors:acceptedFavors),
-              FavorsList(title:"Completed", favors:completedFavors),
-              FavorsList(title:"Refused", favors:refusedFavors),
+      length: 4,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Your favors"),
+          bottom: TabBar(
+            isScrollable: true,
+            tabs: [
+              _buildCategoryTab("Requests"),
+              _buildCategoryTab("Doing"),
+              _buildCategoryTab("Completed"),
+              _buildCategoryTab("Refused"),
             ],
           ),
-          floatingActionButton: FloatingActionButton(
-            heroTag: "request_page",
-            onPressed: () {
-              Navigator.of(context).pushNamed("/request");
-            },
-            tooltip: "Ask a favor",
-            child: Icon(Icons.add),
-          ),
         ),
+        body: TabBarView(
+          children: [
+            FavorsList(title:"Pending Requests", favors:pendingAnswerFavors),
+            FavorsList(title:"Doing", favors:acceptedFavors),
+            FavorsList(title:"Completed", favors:completedFavors),
+            FavorsList(title:"Refused", favors:refusedFavors),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          heroTag: "request_page",
+          onPressed: () {
+            Navigator.of(context).pushNamed("/request");
+          },
+          tooltip: "Ask a favor",
+          child: Icon(Icons.add),
+        ),
+      ),
     );
   }
 
@@ -226,7 +226,17 @@ class FavorsList extends StatelessWidget{
           itemCount: favors.length,
           itemBuilder: (BuildContext context, int index){
             final favor = favors[index];
-            return FavorCardItem(favor: favor);
+            return InkWell(
+              onTap: (){
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (_,__,___)=>FavorDetailsPage(favor:favor),
+                  )
+                );
+              },
+              child: FavorCardItem(favor: favor),
+            );
           },
         );
     }
@@ -238,7 +248,17 @@ class FavorsList extends StatelessWidget{
       scrollDirection: Axis.vertical,
       itemBuilder: (BuildContext context,int index){
         final favor = favors[index];
-        return FavorCardItem(favor: favor);
+        return InkWell(
+          onTap: (){
+            Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (_,__,___)=>FavorDetailsPage(favor:favor),
+                )
+            );
+          },
+          child: FavorCardItem(favor: favor),
+        );
       },
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         childAspectRatio: _aspectRatio,
@@ -264,7 +284,10 @@ class FavorCardItem extends StatelessWidget{
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               _itemHeader(context,favor),
-              _itemDescription(context,favor),
+              Hero(
+                tag: "description_${favor.uuid}",
+                child:_itemDescription(context,favor),
+              ),
               _itemFooter(context,favor),
             ],
           ),
@@ -277,11 +300,15 @@ class FavorCardItem extends StatelessWidget{
   Widget _itemHeader(BuildContext context,Favor favor) {
     return Row(
       children: [
-        CircleAvatar(
-          backgroundImage: NetworkImage(
-            favor.friend.photoURL,
+        Hero(
+          tag: "avatar_${favor.uuid}",
+          child: CircleAvatar(
+            backgroundImage: NetworkImage(
+              favor.friend.photoURL,
+            ),
           ),
         ),
+
         Expanded(
           child: Padding(
             padding: EdgeInsets.only(left: 8.0),
@@ -377,10 +404,8 @@ class RequestFavorPage extends StatefulWidget {
 class RequestFavorPageState extends State<RequestFavorPage>{
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Friend _selectedFriend;
-  //String _description;
   final descriptionController = TextEditingController();
   final dateTimeController = TextEditingController();
-
   static RequestFavorPageState of(BuildContext context){
     return context.findAncestorStateOfType<RequestFavorPageState>();
   }
@@ -389,6 +414,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
   void dispose(){
     descriptionController.dispose();
     dateTimeController.dispose();
+    _formKey.currentState?.dispose();
     super.dispose();
   }
 
@@ -403,8 +429,10 @@ class RequestFavorPageState extends State<RequestFavorPage>{
   @override
   Widget build(BuildContext context){
     return Hero(
-      tag: "request_page",
-      //tag: "temp",
+      //tag: "request_page",
+      tag: "temp_tag",
+      //TODO: Fix Hero bug
+
       child: Scaffold(
         appBar: AppBar(
           leading: CloseButton(),
@@ -432,7 +460,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 DropdownButtonFormField<Friend>(
                   value: _selectedFriend,
                   onChanged: (friend){
@@ -494,6 +522,74 @@ class RequestFavorPageState extends State<RequestFavorPage>{
           ),
         ),
       ),
+    );
+  }
+}
+
+class FavorDetailsPage extends StatefulWidget{
+  final Favor favor;
+  const FavorDetailsPage({Key key,this.favor}):super(key: key);
+  @override
+  FavorDetailsPageState createState() => FavorDetailsPageState();
+}
+class FavorDetailsPageState extends State<FavorDetailsPage>{
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Card(
+        child: InkWell(
+          onTap: (){Navigator.of(context).pop();},
+          child:Padding(
+            padding: EdgeInsets.symmetric(vertical: 10.0,horizontal: 10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _itemHeader(context,widget.favor),
+                Container(
+                  height: 16.0,
+                ),
+                Expanded(
+                  child: Center(
+                    child: Hero(
+                      tag: "description_${widget.favor.uuid}",
+                      child: Text(
+                        widget.favor.description,
+                        style: Theme.of(context).textTheme.headline4,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+      ),
+    );
+  }
+
+  Widget _itemHeader(BuildContext context,Favor favor){
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Hero(
+          tag: "avatar_${favor.uuid}",
+          child: CircleAvatar(
+            radius: 60,
+            backgroundImage: NetworkImage(
+              favor.friend.photoURL,
+            ),
+          ),
+        ),
+        Container(
+          height: 16.0,
+        ),
+        Text(
+          "${favor.friend.name} asked you to...",
+          style: Theme.of(context).textTheme.headline3,
+        ),
+      ],
     );
   }
 }
