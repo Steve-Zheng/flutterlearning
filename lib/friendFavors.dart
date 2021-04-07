@@ -404,23 +404,22 @@ class RequestFavorPage extends StatefulWidget {
 class RequestFavorPageState extends State<RequestFavorPage>{
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Friend _selectedFriend;
-  final descriptionController = TextEditingController();
-  final dateTimeController = TextEditingController();
+  String _enteredDescription;
+  DateTime _selectedDateTime;
+
   static RequestFavorPageState of(BuildContext context){
     return context.findAncestorStateOfType<RequestFavorPageState>();
   }
 
   @override
   void dispose(){
-    descriptionController.dispose();
-    dateTimeController.dispose();
     _formKey.currentState?.dispose();
     super.dispose();
   }
 
   void save(){
     if(_formKey.currentState.validate()){
-      final favor = new Favor(friend: _selectedFriend,description: descriptionController.text,dueDate: DateTime.now());
+      final favor = new Favor(friend: _selectedFriend,description: _enteredDescription,dueDate: _selectedDateTime);
       pendingAnswerFavors.add(favor);
       Navigator.of(context).pop();
     }
@@ -489,9 +488,9 @@ class RequestFavorPageState extends State<RequestFavorPage>{
                     if(value.isEmpty){
                       return "No description provided";
                     }
+                    _enteredDescription = value;
                     return null;
                   },
-                  controller: descriptionController,
                 ),
                 Container(
                   height: 16.0,
@@ -513,9 +512,9 @@ class RequestFavorPageState extends State<RequestFavorPage>{
                     if(dateTime==null){
                       return "No due date selected";
                     }
+                    _selectedDateTime = dateTime;
                     return null;
                   },
-                  controller: dateTimeController,
                 ),
               ],
             ),
