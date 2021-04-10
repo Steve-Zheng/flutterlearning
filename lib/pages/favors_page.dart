@@ -28,10 +28,9 @@ class FavorsPageState extends State<FavorsPage>{
   @override
   void initState(){
     super.initState();
-    //TODO: Uncomment this to enable login
-    // if(FirebaseAuth.instance.currentUser == null){
-    //   Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>LoginPage()));
-    // }
+     if(FirebaseAuth.instance.currentUser == null){
+       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>LoginPage()));
+     }
     pendingAnswerFavors = [];
     acceptedFavors = [];
     completedFavors = [];

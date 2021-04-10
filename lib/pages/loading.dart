@@ -3,6 +3,12 @@ import 'package:flutter/material.dart';
 class LoadingPage extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
-    return Text('Loading...',textDirection: TextDirection.ltr);
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Text("Loading"),
+        ),
+      ),
+    );
   }
 }
