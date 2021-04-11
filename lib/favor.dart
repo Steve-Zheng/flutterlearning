@@ -7,6 +7,7 @@ class Favor{
   final DateTime completed;
   final DateTime refuseDate;
   final Friend friend;
+  final String to;
   Favor({
    this.uuid,
    this.description,
@@ -15,6 +16,7 @@ class Favor{
    this.completed,
    this.friend,
    this.refuseDate,
+   this.to,
 });
 
   get isDoing => accepted == true && completed == null;
@@ -44,4 +46,24 @@ class Favor{
       friend: friend ?? this.friend,
     );
   }
+  Favor.fromMap(String uid,Map<String,dynamic> data)
+    :this(
+    uuid: uid,
+    description: data['description'],
+    dueDate: DateTime.fromMicrosecondsSinceEpoch(data['dueDate']),
+    accepted: data['accepted'],
+    completed: data['completed'] != null ? DateTime.fromMicrosecondsSinceEpoch(data['completed']):null,
+    refuseDate: data['refuseDate'] != null ? DateTime.fromMicrosecondsSinceEpoch(data['refuseDate']):null,
+    friend: Friend.fromMap(data['friend']),
+    to: data['to'],
+  );
+  Map<String, dynamic> toJson() => {
+    'description': this.description,
+    'dueDate': this.dueDate?.microsecondsSinceEpoch??null,
+    'accepted': this.accepted,
+    'completed': this.completed?.microsecondsSinceEpoch??null,
+    'refuseDate': this.refuseDate?.microsecondsSinceEpoch??null,
+    'friend': this.friend.toJson(),
+    'to': this.to,
+  };
 }

@@ -1,19 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterlearning/favor.dart';
 import 'package:flutterlearning/friend.dart';
-import 'package:flutterlearning/mock_values.dart';
+import 'package:flutterlearning/pages/request_favor_page.dart';
 import 'package:intl/intl.dart';
 import 'package:flutterlearning/string_extension.dart';
 import 'dart:math';
 
 import 'package:flutterlearning/pages/login_page.dart';
 
-List<Favor> pendingAnswerFavors;
-List<Favor> acceptedFavors;
-List<Favor> completedFavors;
-List<Favor> refusedFavors;
-Set<Friend> friends;
 
 class FavorsPage extends StatefulWidget {
   FavorsPage({
@@ -25,6 +21,12 @@ class FavorsPage extends StatefulWidget {
 }
 
 class FavorsPageState extends State<FavorsPage>{
+  List<Favor> pendingAnswerFavors;
+  List<Favor> acceptedFavors;
+  List<Favor> completedFavors;
+  List<Favor> refusedFavors;
+  Set<Friend> friends;
+
   @override
   void initState(){
     super.initState();
@@ -36,20 +38,46 @@ class FavorsPageState extends State<FavorsPage>{
     completedFavors = [];
     refusedFavors = [];
     friends = Set();
-    loadFavors();
     watchFavorsCollection();
   }
 
   void watchFavorsCollection() async{
     final currentUser = FirebaseAuth.instance.currentUser;
-    //TODO: Implement watchFavorsCollection
-  }
+    FirebaseFirestore.instance
+        .collection('favors')
+        .where('to', isEqualTo: currentUser.phoneNumber)
+        .snapshots()
+        .listen((event) {
+      List<Favor> newCompletedFavors = [];
+      List<Favor> newRefusedFavors = [];
+      List<Favor> newAcceptedFavors = [];
+      List<Favor> newPendingAnswerFavors = [];
+      Set<Friend> newFriends = Set();
 
-  void loadFavors(){
-    pendingAnswerFavors.addAll(mockPendingFavors);
-    acceptedFavors.addAll(mockDoingFavors);
-    completedFavors.addAll(mockCompletedFavors);
-    refusedFavors.addAll(mockRefusedFavors);
+      event.docs.forEach((element) {
+        Favor favor = Favor.fromMap(element.id,element.data());
+
+        if(favor.isCompleted){
+          newCompletedFavors.add(favor);
+        } else if (favor.isRefused){
+          newRefusedFavors.add(favor);
+        } else if (favor.isDoing){
+          newAcceptedFavors.add(favor);
+        } else{
+          newPendingAnswerFavors.add(favor);
+        }
+
+        newFriends.add(favor.friend);
+      });
+
+      setState(() {
+        this.completedFavors = newCompletedFavors;
+        this.pendingAnswerFavors = newPendingAnswerFavors;
+        this.refusedFavors = newRefusedFavors;
+        this.acceptedFavors = newAcceptedFavors;
+        this.friends = newFriends;
+      });
+    });
   }
 
   static FavorsPageState of(BuildContext context){
@@ -87,7 +115,11 @@ class FavorsPageState extends State<FavorsPage>{
         floatingActionButton: FloatingActionButton(
           heroTag: "request_page",
           onPressed: () {
-            Navigator.of(context).pushNamed("/request");
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => RequestFavorPage(friends: friends.toList(),)
+              ),
+            );
           },
           tooltip: "Ask a favor",
           child: Icon(Icons.add),

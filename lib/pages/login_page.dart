@@ -5,15 +5,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutterlearning/favor.dart';
 import 'package:flutterlearning/friend.dart';
 import 'package:flutterlearning/pages/verification_widget.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
-import 'package:flutterlearning/string_extension.dart';
-import 'dart:math';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
@@ -22,7 +17,7 @@ import 'package:flutterlearning/pages/favors_page.dart';
 
 
 class LoginPage extends StatefulWidget{
-  List<Friend> friends;
+  final List<Friend> friends;
   LoginPage({Key key, this.friends}): super(key: key);
 
   @override
@@ -42,8 +37,10 @@ class LoginPageState extends State<LoginPage>{
   bool _showProgress = false;
   String _displayName;
   File _imageFile;
+  Image _imageForWeb;
   bool _labeling = false;
   List<ImageLabel> _labels = [];
+  ConfirmationResult confirmationResult;
   @override
   void initState(){
     super.initState();
@@ -108,7 +105,7 @@ class LoginPageState extends State<LoginPage>{
                     children: [
                       InkWell(
                         child: CircleAvatar(
-                          backgroundImage: _imageFile != null ? FileImage(_imageFile) : AssetImage('assets/default_avatar.png'),
+                          backgroundImage: _imageFile != null ? (kIsWeb? _imageForWeb.image:FileImage(_imageFile)) : (kIsWeb? AssetImage('images/default_avatar.png'):AssetImage('assets/images/default_avatar.png')),
                         ),
                         onTap: (){
                           _importImage();
@@ -117,7 +114,7 @@ class LoginPageState extends State<LoginPage>{
                       Container(
                         height: 16.0,
                       ),
-                      Text(_labeling ? "Labeling the captured image..." : "Capture a image to start labeling"),
+                      Text(_labeling ? "Labeling the captured image..." : "Capture a image to start labeling. Not supported in web yet."),
                       Container(
                         height: 32.0,
                       ),
@@ -233,14 +230,20 @@ class LoginPageState extends State<LoginPage>{
     final PhoneCodeAutoRetrievalTimeout autoRetrievalTimeout = (String verID){
       this._verificationId = verID;
     };
-
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: _phoneNumber,
-      verificationCompleted: verificationSuccess,
-      verificationFailed: verificationFail,
-      codeSent: codeSent,
-      codeAutoRetrievalTimeout: autoRetrievalTimeout
-    );
+    FirebaseAuth.instance.setSettings(appVerificationDisabledForTesting: true);
+    if(kIsWeb){
+      confirmationResult = await FirebaseAuth.instance.signInWithPhoneNumber(_phoneNumber);
+      _goToVerificationStep();
+    }
+    else {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+          phoneNumber: _phoneNumber,
+          verificationCompleted: verificationSuccess,
+          verificationFailed: verificationFail,
+          codeSent: codeSent,
+          codeAutoRetrievalTimeout: autoRetrievalTimeout
+      );
+    }
   }
 
   void _executeLogin() async {
@@ -248,13 +251,17 @@ class LoginPageState extends State<LoginPage>{
       _showProgress = true;
     });
 
-    await FirebaseAuth.instance.signInWithCredential(
-      PhoneAuthProvider.credential(
-        verificationId: _verificationId,
-        smsCode: _smsCode,
-      )
-    );
-
+    if(kIsWeb){
+      await confirmationResult.confirm(_smsCode);
+    }
+    else {
+      await FirebaseAuth.instance.signInWithCredential(
+          PhoneAuthProvider.credential(
+            verificationId: _verificationId,
+            smsCode: _smsCode,
+          )
+      );
+    }
     if(FirebaseAuth.instance.currentUser != null){
       _goToProfileStep();
     }
@@ -282,15 +289,22 @@ class LoginPageState extends State<LoginPage>{
     final _picker = ImagePicker();
     PickedFile _image = await _picker.getImage(source: ImageSource.camera);
     setState(() {
+      _imageForWeb = Image.network(_image.path);
       _imageFile = File(_image.path);
     });
-    _labelImage();
+    if(!kIsWeb){
+      _labelImage();
+    }
   }
 
   _uploadPicture(String userID) async {
-    FirebaseStorage storage = FirebaseStorage.instance;
-    Reference ref = storage.ref().child('profiles').child('profile_$userID');
-    await ref.putFile(_imageFile);
+    Reference ref;
+    if(!kIsWeb){
+      ref = FirebaseStorage.instance.ref().child('profiles').child('profile_$userID');
+      await ref.putFile(_imageFile);
+    } else{
+      ref = FirebaseStorage.instance.ref().child('profiles').child('default_avatar.png');
+    }
     return await ref.getDownloadURL();
   }
 
