@@ -45,7 +45,11 @@ class LoginPageState extends State<LoginPage>{
   void initState(){
     super.initState();
     if(FirebaseAuth.instance.currentUser != null){
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>FavorsPage()));
+      Future.microtask(() => Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context)=>FavorsPage(),
+          )
+      ));
     }
   }
 

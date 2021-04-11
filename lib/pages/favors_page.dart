@@ -135,31 +135,23 @@ class FavorsPageState extends State<FavorsPage>{
   }
 
   void refuseToDo(Favor favor){
-    setState(() {
-      pendingAnswerFavors.remove(favor);
-      refusedFavors.add(favor.copyWith(accepted:false,refuseDate:DateTime.now()));
-    });
+    _updateFavorOnFirebase(favor.copyWith(accepted: false,refuseDate: DateTime.now()));
   }
 
   void acceptToDo(Favor favor){
-    setState(() {
-      pendingAnswerFavors.remove(favor);
-      acceptedFavors.add(favor.copyWith(accepted: true));
-    });
+    _updateFavorOnFirebase(favor.copyWith(accepted: true));
   }
 
   void giveUpDoing(Favor favor){
-    setState(() {
-      acceptedFavors.remove(favor);
-      refusedFavors.add(favor.copyWith(accepted: false,refuseDate: DateTime.now()));
-    });
+    _updateFavorOnFirebase(favor.copyWith(accepted:false,refuseDate: DateTime.now()));
   }
 
   void completeDoing(Favor favor){
-    setState(() {
-      acceptedFavors.remove(favor);
-      completedFavors.add(favor.copyWith(completed: DateTime.now()));
-    });
+    _updateFavorOnFirebase(favor.copyWith(completed: DateTime.now()));
+  }
+
+  void _updateFavorOnFirebase(Favor favor) async {
+    await FirebaseFirestore.instance.collection('favors').doc(favor.uuid).set(favor.toJson());
   }
 }
 

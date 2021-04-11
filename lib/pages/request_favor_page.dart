@@ -23,6 +23,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
   Friend _selectedFriend;
   DateTime _dueDate;
   String _description;
+  List<Friend> friends;
 
   static RequestFavorPageState of(BuildContext context){
     return context.findAncestorStateOfType<RequestFavorPageState>();
@@ -32,9 +33,10 @@ class RequestFavorPageState extends State<RequestFavorPage>{
   void initState() {
     super.initState();
     Friend newFriend = Friend(name: 'New number', uuid: 'new');
-    widget.friends.add(newFriend);
-    widget.friends.add(Friend(name: 'xxx',uuid: 'qwq'));
-    print(widget.friends.length);
+    //widget.friends.add(newFriend);
+    //widget.friends.add(Friend(name: 'xxx',uuid: 'qwq'));
+    friends = widget.friends..add(newFriend);
+    friends.add(Friend(name: 'xxx',uuid: 'qwq'));
   }
 
   @override
@@ -110,8 +112,8 @@ class RequestFavorPageState extends State<RequestFavorPage>{
                         _selectedFriend = friend;
                       });
                     },
-                    items: widget.friends.map(
-                            (e) => DropdownMenuItem<Friend>(child: Text(e.name),value: e,)
+                    items: friends.map(
+                            (e) => DropdownMenuItem(child: Text(e.name),value: e,)
                     ).toList(),
                     validator: (friend){
                       if(friend == null){
@@ -120,26 +122,26 @@ class RequestFavorPageState extends State<RequestFavorPage>{
                       return null;
                     },
                   ),
-                  // _selectedFriend?.uuid == 'new'
-                  //     ? TextFormField(
-                  //         maxLines: 1,
-                  //         decoration: InputDecoration(hintText: "Friend phone number"),
-                  //         inputFormatters: [
-                  //           LengthLimitingTextInputFormatter(20),
-                  //         ],
-                  //         validator: (value){
-                  //           if(value.isEmpty){
-                  //             return "Please enter friend phone number";
-                  //           }
-                  //           return null;
-                  //         },
-                  //         onSaved: (value){
-                  //           _selectedFriend = Friend(number: value);
-                  //         },
-                  //       )
-                  //     : Container(
-                  //         height: 0,
-                  //       ),
+                  _selectedFriend?.uuid == 'new'
+                      ? TextFormField(
+                          maxLines: 1,
+                          decoration: InputDecoration(hintText: "Friend phone number"),
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(20),
+                          ],
+                          validator: (value){
+                            if(value.isEmpty){
+                              return "Please enter friend phone number";
+                            }
+                            return null;
+                          },
+                          onSaved: (value){
+                            _selectedFriend = Friend(number: value);
+                          },
+                        )
+                      : Container(
+                          height: 0,
+                        ),
                   Container(
                     height: 16.0,
                   ),
