@@ -118,16 +118,7 @@ class LoginPageState extends State<LoginPage>{
                       Container(
                         height: 16.0,
                       ),
-                      Text(_labeling ? "Labeling the captured image..." : "Capture a image to start labeling. Not supported in web yet."),
-                      Container(
-                        height: 32.0,
-                      ),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: min(_labels.length, 5),
-                        scrollDirection: Axis.vertical,
-                        itemBuilder: (BuildContext context, int index) => Text("${_labels[index].text}, confidence: ${_labels[index].confidence}"),
-                      ),
+                      Text(kIsWeb?"Upload user pic currently not supported in web":"Upload a user pic here."),
                       Container(
                         height: 16.0,
                       ),
@@ -138,7 +129,7 @@ class LoginPageState extends State<LoginPage>{
                             _displayName = value;
                           });
                         },
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -296,9 +287,6 @@ class LoginPageState extends State<LoginPage>{
       _imageForWeb = Image.network(_image.path);
       _imageFile = File(_image.path);
     });
-    if(!kIsWeb){
-      _labelImage();
-    }
   }
 
   _uploadPicture(String userID) async {
@@ -310,25 +298,5 @@ class LoginPageState extends State<LoginPage>{
       ref = FirebaseStorage.instance.ref().child('profiles').child('default_avatar.png');
     }
     return await ref.getDownloadURL();
-  }
-
-  _labelImage() async {
-    if(_imageFile == null){
-      return;
-    }
-
-    setState(() {
-      _labeling = true;
-    });
-
-    final FirebaseVisionImage visionImage = FirebaseVisionImage.fromFile(_imageFile);
-    final ImageLabeler labelDetector = FirebaseVision.instance.imageLabeler();
-
-    List<ImageLabel> labels = await labelDetector.processImage(visionImage);
-
-    setState(() {
-      _labels = labels;
-      _labeling = false;
-    });
   }
 }

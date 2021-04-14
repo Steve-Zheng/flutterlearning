@@ -13,30 +13,30 @@ class RequestFavorPage extends StatefulWidget {
   RequestFavorPage({Key key,this.friends}):super(key:key);
 
   @override
-  RequestFavorPageState createState(){
-    return new RequestFavorPageState();
-  }
+  _RequestFavorPageState createState() => new _RequestFavorPageState();
 }
 
-class RequestFavorPageState extends State<RequestFavorPage>{
+class _RequestFavorPageState extends State<RequestFavorPage>{
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Friend _selectedFriend;
   DateTime _dueDate;
   String _description;
-  List<Friend> friends;
+  Future<List<Friend>> friends;
 
-  static RequestFavorPageState of(BuildContext context){
-    return context.findAncestorStateOfType<RequestFavorPageState>();
+  static _RequestFavorPageState of(BuildContext context) => context.findAncestorStateOfType<_RequestFavorPageState>();
+
+  Future<List<Friend>> _getFriends()async{
+    Friend newFriend = Friend(name: 'New number', uuid: 'new');
+    List<Friend> friends;
+    friends = widget.friends..add(newFriend);
+    return Future.delayed(Duration(seconds: 1),()=>friends);
   }
 
   @override
   void initState() {
     super.initState();
-    Friend newFriend = Friend(name: 'New number', uuid: 'new');
-    //widget.friends.add(newFriend);
-    //widget.friends.add(Friend(name: 'xxx',uuid: 'qwq'));
-    friends = widget.friends..add(newFriend);
-    friends.add(Friend(name: 'xxx',uuid: 'qwq'));
+
+    friends = _getFriends();
   }
 
   @override
@@ -72,10 +72,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
   @override
   Widget build(BuildContext context){
     return Hero(
-      //tag: "request_page",
-      tag: "temp_tag",
-      //TODO: Fix Hero bug
-
+      tag: "request_page",
       child: Scaffold(
         appBar: AppBar(
           leading: CloseButton(),
@@ -85,7 +82,7 @@ class RequestFavorPageState extends State<RequestFavorPage>{
               builder: (context) => TextButton(
                 child: Text("Save"),
                 onPressed: (){
-                  RequestFavorPageState.of(context).save(context);
+                  _RequestFavorPageState.of(context).save(context);
                 },
                 style: ButtonStyle(
                   foregroundColor: MaterialStateColor.resolveWith((Set<MaterialState>states){
@@ -99,95 +96,121 @@ class RequestFavorPageState extends State<RequestFavorPage>{
         body: Padding(
           padding: const EdgeInsets.all(12.0),
           child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  DropdownButtonFormField<Friend>(
-                    //value: _selectedFriend,
-                    onChanged: (friend){
-                      setState(() {
-                        _selectedFriend = friend;
-                      });
-                    },
-                    items: friends.map(
-                            (e) => DropdownMenuItem(child: Text(e.name),value: e,)
-                    ).toList(),
-                    validator: (friend){
-                      if(friend == null){
-                        return "No friend selected";
-                      }
-                      return null;
-                    },
-                  ),
-                  _selectedFriend?.uuid == 'new'
-                      ? TextFormField(
-                          maxLines: 1,
-                          decoration: InputDecoration(hintText: "Friend phone number"),
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(20),
-                          ],
-                          validator: (value){
-                            if(value.isEmpty){
-                              return "Please enter friend phone number";
-                            }
-                            return null;
-                          },
-                          onSaved: (value){
-                            _selectedFriend = Friend(number: value);
-                          },
-                        )
-                      : Container(
-                          height: 0,
-                        ),
-                  Container(
-                    height: 16.0,
-                  ),
-                  Text("Favor description:"),
-                  TextFormField(
-                    maxLines: 3,
-                    inputFormatters: [LengthLimitingTextInputFormatter(120)],
-                    validator: (value){
-                      if(value.isEmpty){
-                        return "No description provided";
-                      }
-                      return null;
-                    },
-                    onSaved: (description){
-                      _description = description;
-                    },
-                  ),
-                  Container(
-                    height: 16.0,
-                  ),
-                  Text("Due date:"),
-                  DateTimeField(
-                    format: DateFormat("EEEE, MMMM d, yyyy 'at' h:mma"),
-                    onShowPicker: (context,currentValue) async {
-                      final date = await showDatePicker(context: context, initialDate: currentValue??DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
-                      if(date != null){
-                        final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(currentValue ?? DateTime.now()));
-                        return DateTimeField.combine(date, time);
-                      }
-                      else{
-                        return currentValue;
-                      }
-                    },
-                    validator: (dateTime){
-                      if(dateTime==null){
-                        return "No due date selected";
-                      }
-                      return null;
-                    },
-                    onSaved: (dateTime){
-                      _dueDate = dateTime;
-                    },
-                  ),
-                ],
-              ),
-            ),
+            child: new FutureBuilder(
+                future: friends,
+                builder: (BuildContext context,
+                    AsyncSnapshot<List<Friend>> snapshot) {
+                  if (!snapshot.hasData) {
+                    return Container(
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator(),
+                    );
+                  } else {
+                    return Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          DropdownButtonFormField<Friend>(
+                            value: _selectedFriend,
+                            onChanged: (friend) {
+                              setState(() {
+                                _selectedFriend = friend;
+                              });
+                            },
+                            items: snapshot.data
+                                .map(
+                                  (f) => DropdownMenuItem<Friend>(
+                                    value: f,
+                                    child: Text(f.name),
+                                  ),
+                                )
+                                .toList(),
+                            validator: (friend) {
+                              if (friend == null) {
+                                return "You must select a friend to ask the favor";
+                              }
+                              return null;
+                            },
+                          ),
+                          _selectedFriend?.uuid == 'new'
+                              ? TextFormField(
+                                  maxLines: 1,
+                                  decoration: InputDecoration(
+                                      hintText: "Friend phone number"),
+                                  inputFormatters: [
+                                    LengthLimitingTextInputFormatter(20),
+                                  ],
+                                  validator: (value) {
+                                    if (value.isEmpty) {
+                                      return "Please enter friend phone number";
+                                    }
+                                    return null;
+                                  },
+                                  onSaved: (value) {
+                                    _selectedFriend = Friend(number: value);
+                                  },
+                                )
+                              : Container(
+                                  height: 0,
+                                ),
+                          Container(
+                            height: 16.0,
+                          ),
+                          Text("Favor description:"),
+                          TextFormField(
+                            maxLines: 3,
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(120)
+                            ],
+                            validator: (value) {
+                              if (value.isEmpty) {
+                                return "No description provided";
+                              }
+                              return null;
+                            },
+                            onSaved: (description) {
+                              _description = description;
+                            },
+                          ),
+                          Container(
+                            height: 16.0,
+                          ),
+                          Text("Due date:"),
+                          DateTimeField(
+                            format: DateFormat("EEEE, MMMM d, yyyy 'at' h:mma"),
+                            onShowPicker: (context, currentValue) async {
+                              final date = await showDatePicker(
+                                  context: context,
+                                  initialDate: currentValue ?? DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(2100));
+                              if (date != null) {
+                                final time = await showTimePicker(
+                                    context: context,
+                                    initialTime: TimeOfDay.fromDateTime(
+                                        currentValue ?? DateTime.now()));
+                                return DateTimeField.combine(date, time);
+                              } else {
+                                return currentValue;
+                              }
+                            },
+                            validator: (dateTime) {
+                              if (dateTime == null) {
+                                return "No due date selected";
+                              }
+                              return null;
+                            },
+                            onSaved: (dateTime) {
+                              _dueDate = dateTime;
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                }),
           ),
         ),
       ),

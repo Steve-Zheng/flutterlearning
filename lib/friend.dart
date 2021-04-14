@@ -3,12 +3,13 @@ class Friend{
   final String name;
   final String number;
   final String photoURL;
+
   Friend({
     this.uuid,
     this.name,
     this.number,
     this.photoURL,
-});
+  });
 
   Friend.fromMap(Map<dynamic,dynamic> data):this(
     uuid: data['uuid'],
@@ -24,9 +25,7 @@ class Friend{
     'photoURL': photoURL,
   };
 
-  bool operator ==(o) {
-    return o is Friend && o.number == name && o.number == number;
-  }
+  bool operator ==(o) => o is Friend && o.name == name && o.number == number;
 
   @override
   int get hashCode => name.hashCode ^ number.hashCode;

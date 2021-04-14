@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterlearning/favor.dart';
 import 'package:flutterlearning/friend.dart';
@@ -80,9 +81,8 @@ class FavorsPageState extends State<FavorsPage>{
     });
   }
 
-  static FavorsPageState of(BuildContext context){
-    return context.findAncestorStateOfType<FavorsPageState>();
-  }
+  static FavorsPageState of(BuildContext context) => context.findAncestorStateOfType<FavorsPageState>();
+
   @override
   void dispose(){
     super.dispose();
@@ -90,7 +90,7 @@ class FavorsPageState extends State<FavorsPage>{
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Text("Your favors"),
@@ -101,15 +101,17 @@ class FavorsPageState extends State<FavorsPage>{
               _buildCategoryTab("Doing"),
               _buildCategoryTab("Completed"),
               _buildCategoryTab("Refused"),
+              _buildCategoryTab("Info"),
             ],
           ),
         ),
         body: TabBarView(
           children: [
-            FavorsList(title:"Pending Requests", favors:pendingAnswerFavors),
-            FavorsList(title:"Doing", favors:acceptedFavors),
-            FavorsList(title:"Completed", favors:completedFavors),
-            FavorsList(title:"Refused", favors:refusedFavors),
+            _FavorsList(title:"Pending Requests", favors:pendingAnswerFavors),
+            _FavorsList(title:"Doing", favors:acceptedFavors),
+            _FavorsList(title:"Completed", favors:completedFavors),
+            _FavorsList(title:"Refused", favors:refusedFavors),
+            _InfoTab(),
           ],
         ),
         floatingActionButton: FloatingActionButton(
@@ -155,11 +157,142 @@ class FavorsPageState extends State<FavorsPage>{
   }
 }
 
-class FavorsList extends StatelessWidget{
+class _InfoTab extends StatefulWidget{
+  _InfoTab({Key key}):super(key: key);
+  @override
+  _InfoTabState createState() => new _InfoTabState();
+}
+
+class _InfoTabState extends State<_InfoTab>{
+  String _phoneNumber;
+  String _displayName;
+
+  static _InfoTabState of(BuildContext context) => context.findAncestorStateOfType<_InfoTabState>();
+
+  @override
+  void initState(){
+    _phoneNumber = FirebaseAuth.instance.currentUser.phoneNumber;
+    _displayName = FirebaseAuth.instance.currentUser.displayName;
+    super.initState();
+  }
+
+  Future<void> _changeName(BuildContext context) async{
+    String _newName;
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context){
+        return AlertDialog(
+          title: Text("Edit name"),
+          content: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text("Previous name: "),
+                    _displayName == null
+                        ?Text("Not Set",style: TextStyle(color: Colors.red))
+                        :Text("$_displayName"),
+                  ],
+                ),
+                Container(
+                  height: 16.0,
+                ),
+                TextField(
+                  decoration: InputDecoration(hintText: "New name"),
+                  onChanged: (value){
+                    _newName = value;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: (){
+                setState(() {
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+            TextButton(
+              child: Text("Save"),
+              onPressed: ()async{
+                setState(() async{
+                  _displayName = _newName;
+                  await FirebaseAuth.instance.currentUser.updateProfile(displayName: _displayName);
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+          ],
+        );
+      }
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            height: 32.0,
+          ),
+          InkWell(
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(FirebaseAuth.instance.currentUser.photoURL),
+              radius: 48,
+            ),
+            //TODO: Add change image function
+          ),
+          Container(
+            height: 16.0,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _displayName == null
+                  ?Text("No username",style: TextStyle(color: Colors.red))
+                  :Text("$_displayName"),
+              InkWell(
+                child: Icon(
+                  Icons.edit,
+                ),
+                onTap: (){_changeName(context);},
+              )
+            ],
+          ),
+          Container(
+            height: 16.0,
+          ),
+          Text("Phone number: $_phoneNumber"),
+          Container(
+            height: 32.0,
+          ),
+          InkWell(
+            child: Text("Sign out"),
+            onTap: ()async{
+              await FirebaseAuth.instance.signOut();
+              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=>LoginPage()));
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FavorsList extends StatelessWidget{
   final String title;
   final List<Favor>favors;
 
-  const FavorsList({Key key,this.title,this.favors}): super(key: key);
+  const _FavorsList({Key key,this.title,this.favors}): super(key: key);
 
   @override
   Widget build(BuildContext context) {

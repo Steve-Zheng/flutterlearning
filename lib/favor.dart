@@ -57,6 +57,7 @@ class Favor{
     friend: Friend.fromMap(data['friend']),
     to: data['to'],
   );
+
   Map<String, dynamic> toJson() => {
     'description': this.description,
     'dueDate': this.dueDate?.microsecondsSinceEpoch??null,
