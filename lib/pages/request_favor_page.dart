@@ -10,26 +10,27 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 class RequestFavorPage extends StatefulWidget {
   final List<Friend> friends;
 
-  RequestFavorPage({Key key,this.friends}):super(key:key);
+  RequestFavorPage({Key key, this.friends}) : super(key: key);
 
   @override
   _RequestFavorPageState createState() => new _RequestFavorPageState();
 }
 
-class _RequestFavorPageState extends State<RequestFavorPage>{
+class _RequestFavorPageState extends State<RequestFavorPage> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Friend _selectedFriend;
   DateTime _dueDate;
   String _description;
   Future<List<Friend>> friends;
 
-  static _RequestFavorPageState of(BuildContext context) => context.findAncestorStateOfType<_RequestFavorPageState>();
+  static _RequestFavorPageState of(BuildContext context) =>
+      context.findAncestorStateOfType<_RequestFavorPageState>();
 
-  Future<List<Friend>> _getFriends()async{
+  Future<List<Friend>> _getFriends() async {
     Friend newFriend = Friend(name: 'New number', uuid: 'new');
     List<Friend> friends;
     friends = widget.friends..add(newFriend);
-    return Future.delayed(Duration(seconds: 1),()=>friends);
+    return Future.delayed(Duration(seconds: 1), () => friends);
   }
 
   @override
@@ -40,37 +41,38 @@ class _RequestFavorPageState extends State<RequestFavorPage>{
   }
 
   @override
-  void dispose(){
+  void dispose() {
     _formKey.currentState?.dispose();
     super.dispose();
   }
 
   _saveFavorOnFirebase(Favor favor) async {
-    await FirebaseFirestore.instance.collection('favors').doc().set(favor.toJson());
+    await FirebaseFirestore.instance
+        .collection('favors')
+        .doc()
+        .set(favor.toJson());
   }
 
   void save(BuildContext context) async {
-    if(_formKey.currentState.validate()){
+    if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
       final user = FirebaseAuth.instance.currentUser;
-      await _saveFavorOnFirebase(
-          Favor(
-            to: _selectedFriend.number,
-            description: _description,
-            dueDate: _dueDate,
-            friend: Friend(
-              name: user.displayName,
-              number: user.phoneNumber,
-              photoURL: user.photoURL,
-            ),
-          )
-      );
+      await _saveFavorOnFirebase(Favor(
+        to: _selectedFriend.number,
+        description: _description,
+        dueDate: _dueDate,
+        friend: Friend(
+          name: user.displayName,
+          number: user.phoneNumber,
+          photoURL: user.photoURL,
+        ),
+      ));
       Navigator.of(context).pop();
     }
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Hero(
       tag: "request_page",
       child: Scaffold(
@@ -81,12 +83,15 @@ class _RequestFavorPageState extends State<RequestFavorPage>{
             Builder(
               builder: (context) => TextButton(
                 child: Text("Save"),
-                onPressed: (){
+                onPressed: () {
                   _RequestFavorPageState.of(context).save(context);
                 },
                 style: ButtonStyle(
-                  foregroundColor: MaterialStateColor.resolveWith((Set<MaterialState>states){
-                    return states.contains(MaterialState.pressed) ? Colors.grey:Colors.white;
+                  foregroundColor: MaterialStateColor.resolveWith(
+                      (Set<MaterialState> states) {
+                    return states.contains(MaterialState.pressed)
+                        ? Colors.grey
+                        : Colors.white;
                   }),
                 ),
               ),
@@ -217,4 +222,3 @@ class _RequestFavorPageState extends State<RequestFavorPage>{
     );
   }
 }
-
