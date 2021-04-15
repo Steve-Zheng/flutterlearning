@@ -560,6 +560,9 @@ class FavorDetailsPageState extends State<FavorDetailsPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
+              Container(
+                height: 24.0,
+              ),
               _itemHeader(context, widget.favor),
               Container(
                 height: 16.0,
