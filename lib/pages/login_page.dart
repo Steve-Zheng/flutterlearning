@@ -257,7 +257,7 @@ class LoginPageState extends State<LoginPage> {
 
     if (kIsWeb) {
       confirmationResult =
-          await FirebaseAuth.instance.signInWithPhoneNumber(_phoneNumber);
+          await FirebaseAuth.instance.signInWithPhoneNumber(_phoneNumber).catchError(() => _goBackToFirstStep());
       _goToVerificationStep();
     } else {
       await FirebaseAuth.instance.verifyPhoneNumber(
@@ -265,7 +265,7 @@ class LoginPageState extends State<LoginPage> {
           verificationCompleted: verificationSuccess,
           verificationFailed: verificationFail,
           codeSent: codeSent,
-          codeAutoRetrievalTimeout: autoRetrievalTimeout);
+          codeAutoRetrievalTimeout: autoRetrievalTimeout).catchError(() => _goBackToFirstStep());
     }
   }
 
@@ -275,13 +275,13 @@ class LoginPageState extends State<LoginPage> {
     });
 
     if (kIsWeb) {
-      await confirmationResult.confirm(_smsCode).catchError((error)=>_goToVerificationStep());
+      await confirmationResult.confirm(_smsCode).catchError(()=>_goToVerificationStep());
     } else {
       await FirebaseAuth.instance
           .signInWithCredential(PhoneAuthProvider.credential(
         verificationId: _verificationId,
         smsCode: _smsCode,
-      )).catchError((error, stackTrace) => _goToVerificationStep());
+      )).catchError(() => _goToVerificationStep());
     }
     if (FirebaseAuth.instance.currentUser != null) {
       _goToProfileStep();
