@@ -18,4 +18,5 @@ class MyApp extends StatelessWidget {
       home: LoginPage(),
     );
   }
+  //TODO: Add loading page
 }

@@ -286,6 +286,8 @@ class LoginPageState extends State<LoginPage> {
     if (FirebaseAuth.instance.currentUser != null) {
       _goToProfileStep();
     }
+
+    //TODO: Add new user check
   }
 
   void _saveProfile() async {
