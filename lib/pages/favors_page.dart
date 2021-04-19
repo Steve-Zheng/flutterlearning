@@ -139,25 +139,27 @@ class FavorsPageState extends State<FavorsPage> {
     );
   }
 
-  void refuseToDo(Favor favor) {
-    _updateFavorOnFirebase(
+  //TODO: Show CircularProgressIndicator during updating
+
+  Future<void> refuseToDo(Favor favor) async {
+    await _updateFavorOnFirebase(
         favor.copyWith(accepted: false, refuseDate: DateTime.now()));
   }
 
-  void acceptToDo(Favor favor) {
-    _updateFavorOnFirebase(favor.copyWith(accepted: true));
+  Future<void> acceptToDo(Favor favor) async {
+    await _updateFavorOnFirebase(favor.copyWith(accepted: true));
   }
 
-  void giveUpDoing(Favor favor) {
-    _updateFavorOnFirebase(
+  Future<void> giveUpDoing(Favor favor) async {
+    await _updateFavorOnFirebase(
         favor.copyWith(accepted: false, refuseDate: DateTime.now()));
   }
 
-  void completeDoing(Favor favor) {
-    _updateFavorOnFirebase(favor.copyWith(completed: DateTime.now()));
+  Future<void> completeDoing(Favor favor) async {
+    await _updateFavorOnFirebase(favor.copyWith(completed: DateTime.now()));
   }
 
-  void _updateFavorOnFirebase(Favor favor) async {
+  Future<void> _updateFavorOnFirebase(Favor favor) async {
     await FirebaseFirestore.instance
         .collection('favors')
         .doc(favor.uuid)
@@ -184,6 +186,22 @@ class _InfoTabState extends State<_InfoTab> {
     _phoneNumber = FirebaseAuth.instance.currentUser.phoneNumber;
     _displayName = FirebaseAuth.instance.currentUser.displayName;
     super.initState();
+  }
+
+  Future<void> _changePhoto(BuildContext context) async {
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: Text("Edit profile photo"),
+                //TODO: Implement AlertDialog
+              );
+            },
+          );
+        });
   }
 
   Future<void> _changeName(BuildContext context) async {
@@ -283,7 +301,10 @@ class _InfoTabState extends State<_InfoTab> {
                   NetworkImage(FirebaseAuth.instance.currentUser.photoURL),
               radius: 48,
             ),
-            //TODO: Add change image function
+            onTap: () async {
+              await _InfoTabState.of(context)._changePhoto(context);
+              setState(() {});
+            },
           ),
           Container(
             height: 16.0,
@@ -299,7 +320,7 @@ class _InfoTabState extends State<_InfoTab> {
                   Icons.edit,
                 ),
                 onTap: () async {
-                  await _changeName(context);
+                  await _InfoTabState.of(context)._changeName(context);
                   setState(() {});
                 },
               )
@@ -499,14 +520,14 @@ class FavorCardItem extends StatelessWidget {
         children: [
           TextButton(
             child: Text("Refuse"),
-            onPressed: () {
-              FavorsPageState.of(context).refuseToDo(favor);
+            onPressed: () async {
+              await FavorsPageState.of(context).refuseToDo(favor);
             },
           ),
           TextButton(
             child: Text("Do"),
-            onPressed: () {
-              FavorsPageState.of(context).acceptToDo(favor);
+            onPressed: () async {
+              await FavorsPageState.of(context).acceptToDo(favor);
             },
           )
         ],
@@ -519,14 +540,14 @@ class FavorCardItem extends StatelessWidget {
         children: [
           TextButton(
             child: Text("Give up"),
-            onPressed: () {
-              FavorsPageState.of(context).giveUpDoing(favor);
+            onPressed: () async {
+              await FavorsPageState.of(context).giveUpDoing(favor);
             },
           ),
           TextButton(
             child: Text("Complete"),
-            onPressed: () {
-              FavorsPageState.of(context).completeDoing(favor);
+            onPressed: () async {
+              await FavorsPageState.of(context).completeDoing(favor);
             },
           )
         ],
