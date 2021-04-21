@@ -109,12 +109,11 @@ class LoginPageState extends State<LoginPage> {
                     children: [
                       InkWell(
                         child: CircleAvatar(
-                          backgroundImage: _imageFile != null
-                              ? (kIsWeb
-                                  ? _imageForWeb.image
-                                  : FileImage(_imageFile))
-                              : AssetImage('images/default_avatar.png')
-                        ),
+                            backgroundImage: _imageFile != null
+                                ? (kIsWeb
+                                    ? _imageForWeb.image
+                                    : FileImage(_imageFile))
+                                : AssetImage('images/default_avatar.png')),
                         onTap: () {
                           _importImage();
                         },
@@ -256,16 +255,19 @@ class LoginPageState extends State<LoginPage> {
     FirebaseAuth.instance.setSettings(appVerificationDisabledForTesting: true);
 
     if (kIsWeb) {
-      confirmationResult =
-          await FirebaseAuth.instance.signInWithPhoneNumber(_phoneNumber).catchError(() => _goBackToFirstStep());
+      confirmationResult = await FirebaseAuth.instance
+          .signInWithPhoneNumber(_phoneNumber)
+          .catchError(() => _goBackToFirstStep());
       _goToVerificationStep();
     } else {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-          phoneNumber: _phoneNumber,
-          verificationCompleted: verificationSuccess,
-          verificationFailed: verificationFail,
-          codeSent: codeSent,
-          codeAutoRetrievalTimeout: autoRetrievalTimeout).catchError(() => _goBackToFirstStep());
+      await FirebaseAuth.instance
+          .verifyPhoneNumber(
+              phoneNumber: _phoneNumber,
+              verificationCompleted: verificationSuccess,
+              verificationFailed: verificationFail,
+              codeSent: codeSent,
+              codeAutoRetrievalTimeout: autoRetrievalTimeout)
+          .catchError(() => _goBackToFirstStep());
     }
   }
 
@@ -275,13 +277,16 @@ class LoginPageState extends State<LoginPage> {
     });
 
     if (kIsWeb) {
-      await confirmationResult.confirm(_smsCode).catchError(()=>_goToVerificationStep());
+      await confirmationResult
+          .confirm(_smsCode)
+          .catchError(() => _goToVerificationStep());
     } else {
       await FirebaseAuth.instance
           .signInWithCredential(PhoneAuthProvider.credential(
-        verificationId: _verificationId,
-        smsCode: _smsCode,
-      )).catchError(() => _goToVerificationStep());
+            verificationId: _verificationId,
+            smsCode: _smsCode,
+          ))
+          .catchError(() => _goToVerificationStep());
     }
     if (FirebaseAuth.instance.currentUser != null) {
       _goToProfileStep();

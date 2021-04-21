@@ -214,7 +214,7 @@ class _InfoTabState extends State<_InfoTab> {
           return StatefulBuilder(
             builder: (context, setState) {
               return AlertDialog(
-                title: Text("Edit name"),
+                title: Text("Edit display name"),
                 content: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
                   child: Column(
