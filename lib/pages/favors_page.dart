@@ -611,6 +611,9 @@ class FavorDetailsPageState extends State<FavorDetailsPage> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Container(
+          height: 24.0,
+        ),
         Hero(
           tag: "avatar_${favor.uuid}",
           child: CircleAvatar(
