@@ -11,6 +11,8 @@ import 'dart:math';
 
 import 'package:flutterlearning/pages/login_page.dart';
 
+//TODO: Use universal_io to implement file upload in web
+
 class FavorsPage extends StatefulWidget {
   FavorsPage({
     Key key,
