@@ -24,6 +24,8 @@ class LoginPage extends StatefulWidget {
   LoginPageState createState() => LoginPageState();
 }
 
+//TODO: Allow go back to reenter phone number
+
 class LoginPageState extends State<LoginPage> {
   String _phoneNumber;
   String _smsCode;
