@@ -28,6 +28,7 @@ class FavorsPageState extends State<FavorsPage> {
   List<Favor> completedFavors;
   List<Favor> refusedFavors;
   Set<Friend> friends;
+  bool showProgress;
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class FavorsPageState extends State<FavorsPage> {
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => LoginPage()));
     }
+    showProgress = false;
     pendingAnswerFavors = [];
     acceptedFavors = [];
     completedFavors = [];
@@ -144,28 +146,58 @@ class FavorsPageState extends State<FavorsPage> {
   //TODO: Show CircularProgressIndicator during updating
 
   Future<void> refuseToDo(Favor favor) async {
+    setState(() {
+      showProgress = true;
+    });
     await _updateFavorOnFirebase(
         favor.copyWith(accepted: false, refuseDate: DateTime.now()));
+    setState(() {
+      showProgress = false;
+    });
   }
 
   Future<void> acceptToDo(Favor favor) async {
+    setState(() {
+      showProgress = true;
+    });
     await _updateFavorOnFirebase(favor.copyWith(accepted: true));
+    setState(() {
+      showProgress = false;
+    });
   }
 
   Future<void> giveUpDoing(Favor favor) async {
+    setState(() {
+      showProgress = true;
+    });
     await _updateFavorOnFirebase(
         favor.copyWith(accepted: false, refuseDate: DateTime.now()));
+    setState(() {
+      showProgress = false;
+    });
   }
 
   Future<void> completeDoing(Favor favor) async {
+    setState(() {
+      showProgress = true;
+    });
     await _updateFavorOnFirebase(favor.copyWith(completed: DateTime.now()));
+    setState(() {
+      showProgress = false;
+    });
   }
 
   Future<void> _updateFavorOnFirebase(Favor favor) async {
+    setState(() {
+      showProgress = true;
+    });
     await FirebaseFirestore.instance
         .collection('favors')
         .doc(favor.uuid)
         .set(favor.toJson());
+    setState(() {
+      showProgress = false;
+    });
   }
 }
 
