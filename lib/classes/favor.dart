@@ -1,4 +1,5 @@
-import 'package:flutterlearning/friend.dart';
+import 'package:flutterlearning/classes/friend.dart';
+
 class Favor{
   final String uuid;
   final String description;
@@ -35,6 +36,7 @@ class Favor{
     DateTime completed,
     DateTime refuseDate,
     Friend friend,
+    String to,
   }) {
     return Favor(
       uuid: uuid ?? this.uuid,
@@ -44,6 +46,7 @@ class Favor{
       completed: completed ?? this.completed,
       refuseDate: refuseDate??this.refuseDate,
       friend: friend ?? this.friend,
+      to: to ?? this.to,
     );
   }
   Favor.fromMap(String uid,Map<String,dynamic> data)

@@ -5,15 +5,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutterlearning/friend.dart';
-import 'package:flutterlearning/pages/verification_widget.dart';
+import 'package:flutterlearning/classes/friend.dart';
+import 'package:flutterlearning/pages/components/verificationWidget.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 
-import 'package:flutterlearning/pages/favors_page.dart';
+import 'package:flutterlearning/pages/favorsPage.dart';
 
 class LoginPage extends StatefulWidget {
   final List<Friend> friends;
@@ -325,7 +325,7 @@ class LoginPageState extends State<LoginPage> {
 
   void _importImage() async {
     final _picker = ImagePicker();
-    PickedFile _image = await _picker.getImage(source: ImageSource.camera);
+    PickedFile _image = await _picker.getImage(source: ImageSource.camera, maxHeight: 640, maxWidth: 640);
     setState(() {
       _imageForWeb = Image.network(_image.path);
       _imageFile = File(_image.path);

@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutterlearning/favor.dart';
-import 'package:flutterlearning/friend.dart';
+import 'package:flutterlearning/classes/favor.dart';
+import 'package:flutterlearning/classes/friend.dart';
 import 'package:intl/intl.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 
@@ -160,6 +160,18 @@ class _RequestFavorPageState extends State<RequestFavorPage> {
                               : Container(
                                   height: 0,
                                 ),
+                          _selectedFriend?.uuid == 'new' || _selectedFriend == null
+                              ? Container(
+                                  height: 0,
+                                )
+                              : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(height: 16.0,),
+                              Text(
+                                  "Selected phone number: ${_selectedFriend?.number}"),
+                            ],
+                          ),
                           Container(
                             height: 16.0,
                           ),

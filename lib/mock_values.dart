@@ -1,5 +1,5 @@
-import 'package:flutterlearning/favor.dart';
-import 'package:flutterlearning/friend.dart';
+import 'package:flutterlearning/classes/favor.dart';
+import 'package:flutterlearning/classes/friend.dart';
 import 'package:uuid/uuid.dart';
 
 final uuid = Uuid();
