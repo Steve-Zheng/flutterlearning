@@ -160,18 +160,29 @@ class _RequestFavorPageState extends State<RequestFavorPage> {
                               : Container(
                                   height: 0,
                                 ),
-                          _selectedFriend?.uuid == 'new' || _selectedFriend == null
+                          _selectedFriend?.uuid == 'new' ||
+                                  _selectedFriend == null
                               ? Container(
                                   height: 0,
                                 )
                               : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(height: 16.0,),
-                              Text(
-                                  "Selected phone number: ${_selectedFriend?.number}"),
-                            ],
-                          ),
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      height: 16.0,
+                                    ),
+                                    Row(
+                                      children: [
+                                        Text("Selected phone number: "),
+                                        Text(
+                                          "${_selectedFriend?.number}",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                           Container(
                             height: 16.0,
                           ),
