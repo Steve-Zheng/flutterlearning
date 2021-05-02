@@ -190,7 +190,7 @@ class _RequestFavorPageState extends State<RequestFavorPage> {
                           TextFormField(
                             maxLines: 3,
                             inputFormatters: [
-                              LengthLimitingTextInputFormatter(120)
+                              LengthLimitingTextInputFormatter(120),
                             ],
                             validator: (value) {
                               if (value.isEmpty) {
