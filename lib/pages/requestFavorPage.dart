@@ -201,6 +201,9 @@ class _RequestFavorPageState extends State<RequestFavorPage> {
                             onSaved: (description) {
                               _description = description;
                             },
+                            decoration: InputDecoration(
+                              hintText: "Please enter description; Maximum 120 letters",
+                            ),
                           ),
                           Container(
                             height: 16.0,
